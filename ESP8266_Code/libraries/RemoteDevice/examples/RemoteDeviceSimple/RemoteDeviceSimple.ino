@@ -1,3 +1,7 @@
+/*
+  Author: Tobias Grundtvig
+*/
+
 #include <RemoteDevice.h>
 #include <ESP8266WiFi.h>
 #include <WiFiManager.h>

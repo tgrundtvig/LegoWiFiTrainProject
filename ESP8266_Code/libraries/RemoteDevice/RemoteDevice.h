@@ -1,6 +1,7 @@
 /*
-  RemoteDevice.h - TODO: Document...
+  Author: Tobias Grundtvig
 */
+
 #ifndef RemoteDevice_h
 #define RemoteDevice_h
 

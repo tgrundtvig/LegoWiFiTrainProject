@@ -1,6 +1,8 @@
 /*
-    This code is to run at the modified Lego train switch, to control it over WiFi.
+  Author: Tobias Grundtvig
+  This code is used to run at the modified Lego train switch, to control it over WiFi.
 */
+
 #include <RemoteDevice.h>
 #include <AccelStepper.h>
 

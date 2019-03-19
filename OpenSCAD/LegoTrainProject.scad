@@ -1,3 +1,6 @@
+/*
+    Author: Tobias Grundtvig <tgrundtvig@gmail.com>
+*/
 
 
 //Set this to 0 for the small footprint or 1 for the big footprint
