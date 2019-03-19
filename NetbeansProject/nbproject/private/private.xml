@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-private xmlns="http://www.netbeans.org/ns/project-private/1">
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="1">
+        <file>
+            <url>src/legotrainproject/LegoTrainProject.java</url>
+            <bookmark id="1">
+                <name/>
+                <line>54</line>
+                <key/>
+            </bookmark>
+        </file>
+    </editor-bookmarks>
+    <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
+        <group>
+            <file>file:/C:/Users/Tobias/EFIF/OneDrive%20-%20EFIF/CBA/LegoTrainProject/src/remotedevices/implementation/RemoteDeviceConnectionServerImpl.java</file>
+            <file>file:/C:/Users/Tobias/EFIF/OneDrive%20-%20EFIF/CBA/LegoTrainProject/src/remotedevices/RemoteDeviceConnection.java</file>
+            <file>file:/C:/Users/Tobias/EFIF/OneDrive%20-%20EFIF/CBA/LegoTrainProject/src/legotrainproject/railroadswitch/RailroadSwitchListener.java</file>
+            <file>file:/C:/Users/Tobias/EFIF/OneDrive%20-%20EFIF/CBA/LegoTrainProject/src/legotrainproject/railroadswitch/implementation/RailroadSwitchFactoryImpl.java</file>
+            <file>file:/C:/Users/Tobias/EFIF/OneDrive%20-%20EFIF/CBA/LegoTrainProject/src/remotedevices/implementation/AbstractRemoteDevice.java</file>
+            <file>file:/C:/Users/Tobias/EFIF/OneDrive%20-%20EFIF/CBA/LegoTrainProject/src/remotedevices/RemoteDeviceListener.java</file>
+            <file>file:/C:/Users/Tobias/EFIF/OneDrive%20-%20EFIF/CBA/LegoTrainProject/src/legotrainproject/railroadswitch/implementation/RailroadSwitchImplV1.java</file>
+            <file>file:/C:/Users/Tobias/EFIF/OneDrive%20-%20EFIF/CBA/LegoTrainProject/src/remotedevices/implementation/RemoteDeviceConnectionImpl.java</file>
+            <file>file:/C:/Users/Tobias/EFIF/OneDrive%20-%20EFIF/CBA/LegoTrainProject/src/remotedevices/RemoteDevice.java</file>
+            <file>file:/C:/Users/Tobias/EFIF/OneDrive%20-%20EFIF/CBA/LegoTrainProject/src/legotrainproject/railroadswitch/RailroadSwitch.java</file>
+            <file>file:/C:/Users/Tobias/EFIF/OneDrive%20-%20EFIF/CBA/LegoTrainProject/src/legotrainproject/LegoTrainProject.java</file>
+            <file>file:/C:/Users/Tobias/EFIF/OneDrive%20-%20EFIF/CBA/LegoTrainProject/src/remotedevices/RemoteDeviceFactory.java</file>
+            <file>file:/C:/Users/Tobias/EFIF/OneDrive%20-%20EFIF/CBA/LegoTrainProject/src/remotedevices/RemoteDeviceCallbacks.java</file>
+            <file>file:/C:/Users/Tobias/EFIF/OneDrive%20-%20EFIF/CBA/LegoTrainProject/src/remotedevices/RemoteDeviceServer.java</file>
+        </group>
+    </open-files>
+</project-private>

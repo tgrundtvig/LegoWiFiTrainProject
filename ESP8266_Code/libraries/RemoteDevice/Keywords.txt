@@ -1,0 +1,14 @@
+RemoteDevice	KEYWORD1
+start	KEYWORD2
+sendPackage	KEYWORD2
+update	KEYWORD2
+setOnConnectedToWiFi	KEYWORD2
+setOnDisconnectedFromWiFi	KEYWORD2
+setOnTryConnectToServer	KEYWORD2
+setOnConnectionToServerFailed	KEYWORD2
+setOnConnectedToServer	KEYWORD2
+setOnDisconnectedFromServer	KEYWORD2
+setOnAcceptedByServer	KEYWORD2
+setOnRejectedByServer	KEYWORD2
+setOnServerResponseTimedOut	KEYWORD2
+
