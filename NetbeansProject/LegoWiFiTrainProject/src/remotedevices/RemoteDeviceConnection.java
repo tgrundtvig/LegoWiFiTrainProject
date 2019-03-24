@@ -26,5 +26,5 @@ public interface RemoteDeviceConnection extends Closeable
     @Override
     public void close();
     
-    public enum ErrorCode {ACCEPTED, UNKNOWN_TYPE, UNKNOWN_VERSION, NOT_AUTHORIZED};
+    public enum ErrorCode {ACCEPTED, NO_MATCHING_FACTORY, NOT_AUTHORIZED};
 }

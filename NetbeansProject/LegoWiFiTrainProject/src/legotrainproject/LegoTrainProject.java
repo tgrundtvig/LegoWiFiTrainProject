@@ -4,13 +4,16 @@
 package legotrainproject;
 
 import java.io.IOException;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Scanner;
 import legotrainproject.railroadswitch.RailroadSwitch;
 import legotrainproject.railroadswitch.implementation.RailroadSwitchFactoryImpl;
+import legotrainproject.railroadswitch.test.SwitchTerminal;
+import remotedevices.RemoteDevice;
 import remotedevices.implementation.RemoteDeviceConnectionImpl;
 import remotedevices.RemoteDeviceConnection;
+import remotedevices.RemoteDeviceServer;
+import remotedevices.implementation.RemoteDeviceServerImpl;
 
 /**
  *
@@ -26,68 +29,13 @@ public class LegoTrainProject
      */
     public static void main(String[] args) throws IOException, InterruptedException
     {
+        RemoteDeviceServer server = new RemoteDeviceServerImpl();
         RailroadSwitchFactoryImpl factory = new RailroadSwitchFactoryImpl();
-        ServerSocket serverSocket = new ServerSocket(3377);
-        System.out.println("Sleeping");
-        Thread.sleep(10000);
-        System.out.println("Done sleeping");
-        Socket client = serverSocket.accept();
-        RemoteDeviceConnection deviceConnection = new RemoteDeviceConnectionImpl(client);
-        System.out.println("Device ID: " + deviceConnection.getDeviceId());
-        System.out.println("Device type: " + deviceConnection.getDeviceType());
-        System.out.println("Device Version: " + deviceConnection.getDeviceVersion());
-        System.out.println("Max package size: " + deviceConnection.getMaxPackageSize());
-        RailroadSwitch railSwitch = null;
-        if(factory.matches(deviceConnection))
-        {
-            railSwitch = factory.createNewConnectedDevice(deviceConnection);
-        }
-        else
-        {
-            System.out.println("Connection does not match!");
-            return;
-        }
-        
-        System.out.println("Switch direction is " + railSwitch.getSwitchDirection());
-        System.out.println("Switch state is " + railSwitch.getSwitchState());
-    
-        
-        Scanner input = new Scanner(System.in);
-        while (true)
-        {
-            System.out.print("\nEnter command: ");
-            String cmd = input.nextLine(); 
-            if("left".equals(cmd))
-            {
-                if(railSwitch.switchTo(1))
-                {
-                    System.out.println("Switching to left");
-                    while(railSwitch.getSwitchState() != 1){}
-                    System.out.println("Switch is now left.");
-                }
-                else
-                {
-                    System.out.println("Could not switch");
-                }
-            }
-            else if("right".equals(cmd))
-            {
-                if(railSwitch.switchTo(2))
-                {
-                    System.out.println("Switching to right");
-                    while(railSwitch.getSwitchState() != 2){}
-                    System.out.println("Switch is now right.");
-                }
-                else
-                {
-                    System.out.println("Could not switch");
-                }
-            }
-            else
-            {
-                System.out.println("Unknown command: " + cmd);
-            }
-        } 
+        server.addFactory(factory);
+        SwitchTerminal terminal = new SwitchTerminal();
+        factory.addListener(terminal);
+        RailroadSwitch railSwitch = factory.newRailroadSwitch(581645, server);
+        server.startServer(3377);
+        System.out.println("Main thread is out!");
     }
-
 }

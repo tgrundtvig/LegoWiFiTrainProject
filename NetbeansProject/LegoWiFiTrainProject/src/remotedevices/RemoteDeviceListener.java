@@ -9,6 +9,6 @@ package remotedevices;
  */
 public interface RemoteDeviceListener
 {
-    public void onDeviceConnected(RemoteDevice device);
-    public void onDeviceDisonnected(RemoteDevice device);
+    public void onDeviceConnected(RemoteDeviceView device);
+    public void onDeviceDisonnected(RemoteDeviceView device);
 }

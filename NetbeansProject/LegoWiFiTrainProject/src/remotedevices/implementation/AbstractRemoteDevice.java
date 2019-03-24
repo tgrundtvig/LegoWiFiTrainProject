@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 import remotedevices.RemoteDevice;
-import remotedevices.RemoteDeviceCallbacks;
 import remotedevices.RemoteDeviceConnection;
 import remotedevices.RemoteDeviceFactory;
 import remotedevices.RemoteDeviceListener;
@@ -16,13 +15,13 @@ import remotedevices.RemoteDeviceListener;
  *
  * @author Tobias Grundtvig <tgrundtvig@gmail.com>
  */
-public abstract class AbstractRemoteDevice implements RemoteDevice, RemoteDeviceCallbacks
+public abstract class AbstractRemoteDevice implements RemoteDevice
 {
 
     private final long deviceId;
     private final RemoteDeviceFactory factory;
     private final Set<RemoteDeviceListener> listeners;
-    private RemoteDeviceConnection connection;
+    private volatile RemoteDeviceConnection connection;
     
     public AbstractRemoteDevice(long deviceId, RemoteDeviceFactory factory)
     {
@@ -131,7 +130,7 @@ public abstract class AbstractRemoteDevice implements RemoteDevice, RemoteDevice
     }
     
     @Override
-    public final void onDisconnected()
+    public synchronized final void onDisconnected()
     {
         this.connection = null;
         onDeviceDisconnected();
@@ -142,13 +141,13 @@ public abstract class AbstractRemoteDevice implements RemoteDevice, RemoteDevice
     }
     
     @Override
-    public final void addListener(RemoteDeviceListener listener)
+    public synchronized final void addListener(RemoteDeviceListener listener)
     {
         listeners.add(listener);
     }
     
     @Override
-    public final boolean removeListener(RemoteDeviceListener listener)
+    public synchronized final boolean removeListener(RemoteDeviceListener listener)
     {
         return listeners.remove(listener);
     }    

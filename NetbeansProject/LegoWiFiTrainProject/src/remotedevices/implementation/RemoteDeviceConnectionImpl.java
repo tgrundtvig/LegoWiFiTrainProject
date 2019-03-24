@@ -17,38 +17,30 @@ import remotedevices.RemoteDeviceCallbacks;
 public class RemoteDeviceConnectionImpl implements RemoteDeviceConnection 
 {
 
-    long deviceId;
-    int deviceType;
-    int deviceVersion;
-    int maxPackageSize;
+    private final long deviceId;
+    private final int deviceType;
+    private final int deviceVersion;
+    private final int maxPackageSize;
     private volatile boolean connected;
-    private Socket socket;
-    private InputStream in;
-    private OutputStream out;
-    private int[] byteBuffer;
+    private final Socket socket;
+    private final InputStream in;
+    private final OutputStream out;
+    private final int[] byteBuffer;
+    private Thread readerThread;
     //private RemoteDevice device;
     private RemoteDeviceCallbacks device;
 
     public RemoteDeviceConnectionImpl(Socket socket) throws IOException
     {
         connected = false;
-        deviceId = 0;
-        deviceType = 0;
-        deviceVersion = 0;
-        maxPackageSize = 0;
-        try
-        {
-            in = socket.getInputStream();
-            out = socket.getOutputStream();
-            deviceId = readInteger(8);
-            deviceType = (int) readInteger(4);
-            deviceVersion = (int) readInteger(4);
-            maxPackageSize = (int) readInteger(2);
-            byteBuffer = new int[maxPackageSize];
-        } catch (IOException ex)
-        {
-            onIOException(ex);
-        }
+        this.socket = socket;
+        in = socket.getInputStream();
+        out = socket.getOutputStream();
+        deviceId = readInteger(8);
+        deviceType = (int) readInteger(4);
+        deviceVersion = (int) readInteger(4);
+        maxPackageSize = (int) readInteger(2);
+        byteBuffer = new int[maxPackageSize];
     }
 
     @Override
@@ -76,7 +68,7 @@ public class RemoteDeviceConnectionImpl implements RemoteDeviceConnection
     }
 
     @Override
-    public synchronized void acceptConnectionWithDevice(RemoteDeviceCallbacks device) throws IOException
+    public void acceptConnectionWithDevice(RemoteDeviceCallbacks device) throws IOException
     {
         try
         {
@@ -86,19 +78,16 @@ public class RemoteDeviceConnectionImpl implements RemoteDeviceConnection
 
             //read initialization package
             int size = (int) readInteger(2);
-            System.out.println("Initialization package size: " + size);
             //Check if connection has timed out
             if(size == 65535) throw new IOException("Connection has timed out");
             for (int i = 0; i < size; ++i)
             {
                 byteBuffer[i] = in.read();
-                System.out.println(byteBuffer[i]);
             }
-            System.out.println("Initalization package read!");
             connected = true;
             device.onConnected(this, byteBuffer, size);
-            Thread reader = new Thread(new ReaderThread());
-            reader.start();
+            readerThread = new Thread(new ReaderThread());
+            readerThread.start();
         } catch (IOException ex)
         {
             onIOException(ex);
@@ -175,12 +164,12 @@ public class RemoteDeviceConnectionImpl implements RemoteDeviceConnection
     }
 
     @Override
-    public synchronized boolean isConnected()
+    public boolean isConnected()
     {
         return connected;
     }
 
-    private synchronized long readInteger(int size) throws IOException
+    private long readInteger(int size) throws IOException
     {
         long res = 0;
         for (int i = 0; i < size; ++i)
@@ -210,9 +199,10 @@ public class RemoteDeviceConnectionImpl implements RemoteDeviceConnection
         out.flush();
     }
 
-    private synchronized void onIOException(IOException e) throws IOException
+    private void onIOException(IOException e) throws IOException
     {
         connected = false;
+        readerThread.interrupt();
         if (device != null)
         {
             device.onDisconnected();
@@ -226,15 +216,15 @@ public class RemoteDeviceConnectionImpl implements RemoteDeviceConnection
             } catch (IOException ex)
             {
             }
-            socket = null;
         }
         throw e;
     }
 
     @Override
-    public synchronized void close()
+    public void close()
     {
         connected = false;
+        if(readerThread != null) readerThread.interrupt();
         if (device != null)
         {
             device.onDisconnected();
@@ -248,7 +238,6 @@ public class RemoteDeviceConnectionImpl implements RemoteDeviceConnection
             } catch (IOException ex)
             {
             }
-            socket = null;
         }
     }
 

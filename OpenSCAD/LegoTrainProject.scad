@@ -5,10 +5,8 @@
 
 //Set this to 0 for the small footprint or 1 for the big footprint
 node_type = 0;
-//Set this to one, to create a bottom for arduino pro mini.
+//Set this to 1, to create a bottom for arduino pro mini.
 arduino_bottom = 0;
-
-
 
 
 //BasePlate();

@@ -1,12 +1,12 @@
 /*
  * Not licensed yet, use at your own risk, no warrenties!
  */
-package legotrainproject.railroadswitch.implementation;
+package legotrainproject.locomotive.implementation;
 
 import java.util.HashSet;
 import java.util.Set;
-import legotrainproject.railroadswitch.RailroadSwitchFactory;
-import legotrainproject.railroadswitch.RailroadSwitchFactoryListener;
+import legotrainproject.locomotive.LocomotiveFactory;
+import legotrainproject.locomotive.LocomotiveFactoryListener;
 import remotedevices.RemoteDevice;
 import remotedevices.RemoteDeviceServer;
 import remotedevices.implementation.AbstractRemoteDeviceFactory;
@@ -15,11 +15,11 @@ import remotedevices.implementation.AbstractRemoteDeviceFactory;
  *
  * @author Tobias Grundtvig <tgrundtvig@gmail.com>
  */
-public class RailroadSwitchFactoryImpl extends AbstractRemoteDeviceFactory implements RailroadSwitchFactory
+public class LocomotiveFactoryImpl extends AbstractRemoteDeviceFactory implements LocomotiveFactory
 {
-    private Set<RailroadSwitchFactoryListener> listeners;
-
-    public RailroadSwitchFactoryImpl()
+    private Set<LocomotiveFactoryListener> listeners;
+    
+    public LocomotiveFactoryImpl()
     {
         this.listeners = new HashSet<>();
     }
@@ -28,13 +28,13 @@ public class RailroadSwitchFactoryImpl extends AbstractRemoteDeviceFactory imple
     @Override
     public synchronized String getDeviceTypeName()
     {
-        return "Railroad switch";
+        return "Locomotive";
     }
 
     @Override
     public synchronized int getDeviceType()
     {
-        return 1;
+        return 2;
     }
 
     @Override
@@ -46,29 +46,29 @@ public class RailroadSwitchFactoryImpl extends AbstractRemoteDeviceFactory imple
     @Override
     public synchronized int getMaxPackageSize()
     {
-        return 2;
+        return 4;
     }
 
 
     @Override
-    public synchronized void addListener(RailroadSwitchFactoryListener listener)
+    public synchronized void addListener(LocomotiveFactoryListener listener)
     {
         listeners.add(listener);
     }
 
     @Override
-    public synchronized boolean removeListener(RailroadSwitchFactoryListener listener)
+    public synchronized boolean removeListener(LocomotiveFactoryListener listener)
     {
         return listeners.remove(listener);
     }
     
     @Override
-    public synchronized RailroadSwitchImplV1 newRailroadSwitch(long deviceId, RemoteDeviceServer server)
+    public synchronized LocomotiveImpl newLocomotive(long deviceId, RemoteDeviceServer server)
     {
-        RailroadSwitchImplV1 res = new RailroadSwitchImplV1(deviceId, this);
-        for(RailroadSwitchFactoryListener listener : listeners)
+        LocomotiveImpl res = new LocomotiveImpl(deviceId, this);
+        for(LocomotiveFactoryListener listener : listeners)
         {
-            listener.onNewRailroadSwitch(res);
+            listener.onNewLocomotive(res);
         }
         server.addDevice(res);
         return res;
@@ -77,7 +77,7 @@ public class RailroadSwitchFactoryImpl extends AbstractRemoteDeviceFactory imple
     @Override
     public synchronized RemoteDevice newRemoteDevice(long deviceId, RemoteDeviceServer server)
     {
-        return newRailroadSwitch(deviceId, server);
+        return newLocomotive(deviceId, server);
     }
 
 }
