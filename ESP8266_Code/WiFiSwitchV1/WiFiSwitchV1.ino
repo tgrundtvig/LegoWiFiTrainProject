@@ -9,8 +9,8 @@
 
 #define DEVICE_TYPE 1 //1 -> SWITCH
 #define DEVICE_VERSION 1
-#define DEVICE_TYPE_NAME "LEFT_SWITCH"
-#define SWITCH_DIRECTION 5 //5 = LEFT SWITCH, 6 = RIGHT SWITCH
+#define DEVICE_TYPE_NAME "RIGHT_SWITCH"
+#define SWITCH_DIRECTION 6 //5 = LEFT SWITCH, 6 = RIGHT SWITCH
 #define MAX_PACKAGE_SIZE 2
 
 
@@ -119,7 +119,7 @@ void setup()
   //WiFiManager
   //Local intialization. Once its business is done, there is no need to keep it around
   boolean resetWiFi = !digitalRead(D6);
-  device.start("192.168.43.125",3377,resetWiFi);
+  device.start("192.168.0.140",3377,resetWiFi);
 }
 
 void loop()

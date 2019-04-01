@@ -2,6 +2,8 @@ RemoteDevice	KEYWORD1
 start	KEYWORD2
 sendPackage	KEYWORD2
 update	KEYWORD2
+getConnectionState  KEYWORD2
+isConnected KEYWORD2
 setOnConnectedToWiFi	KEYWORD2
 setOnDisconnectedFromWiFi	KEYWORD2
 setOnTryConnectToServer	KEYWORD2

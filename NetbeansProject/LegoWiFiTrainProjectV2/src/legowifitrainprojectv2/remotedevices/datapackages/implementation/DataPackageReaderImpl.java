@@ -62,7 +62,6 @@ public class DataPackageReaderImpl implements DataPackageReader
     @Override
     public ByteInput getByteInput()
     {
-        checkIfConfigurable();
         return in;
     }
 
@@ -76,14 +75,12 @@ public class DataPackageReaderImpl implements DataPackageReader
     @Override
     public int getInPackageTimeout()
     {
-        checkIfConfigurable();
         return this.inPackageTimeout;
     }
 
     @Override
     public int getBetweenPackageTimeout()
     {
-        checkIfConfigurable();
         return this.betweenPackagesTimeout;
     }
 
@@ -104,28 +101,24 @@ public class DataPackageReaderImpl implements DataPackageReader
     @Override
     public DataPackageListener getDataPackageListener()
     {
-        checkIfConfigurable();
         return dataPackagelistener;
     }
 
     @Override
     public DisconnectListener<DataPackageReader> getDisconnectListener()
     {
-        checkIfConfigurable();
         return disconnectListener;
     }
 
     @Override
     public TimeoutListener<DataPackageReader> getInPackageTimeoutListener()
     {
-        checkIfConfigurable();
         return inPackageTimeoutListener;
     }
 
     @Override
     public TimeoutListener<DataPackageReader> getBetweenPackagesTimeoutListener()
     {
-        checkIfConfigurable();
         return betweenPackagesTimeoutListener;
     }
 

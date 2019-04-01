@@ -5,11 +5,15 @@
  */
 package legowifitrainprojectv2.remotedevices.datapackages;
 
+import legowifitrainprojectv2.common.DisconnectListener;
+
 /**
  *
  * @author Tobias Grundtvig <tgrundtvig@gmail.com>
  */
 public interface DataPackageWriter
 {
+    public void setDisconnectListener(DisconnectListener<DataPackageReader> disconnectListener);
+    public DisconnectListener<DataPackageReader> getDisconnectListener();
     boolean writeDataPackage(DataPackage dataPackage);
 }

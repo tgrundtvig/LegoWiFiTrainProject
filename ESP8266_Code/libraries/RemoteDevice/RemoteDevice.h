@@ -28,6 +28,7 @@ class RemoteDevice
     // 3 -> Accepted by server, waiting to send init package, 
     // 4 -> Initializationpackage sent, ready to work.
     int getConnectionState();
+    bool isConnected();
     
 		void setOnConnectedToWiFi(void (*onConnectedToWiFi)());
 		void setOnDisconnectedFromWiFi(void (*onDisconnectedFromWiFi)());

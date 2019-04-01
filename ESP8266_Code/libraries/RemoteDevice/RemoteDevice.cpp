@@ -140,6 +140,11 @@ int RemoteDevice::getConnectionState()
   return _connectionState;
 }
 
+bool RemoteDevice::isConnected()
+{
+  return _connectionState == 4;
+}
+
 // ConnectionState:
 // 0 -> Not on WiFi,
 // 1 -> On WiFi, not connected to server,
