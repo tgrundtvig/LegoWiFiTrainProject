@@ -3,7 +3,6 @@
  */
 package legotrainproject.locomotive;
 
-import java.io.IOException;
 import remotedevices.RemoteDevice;
 
 /**
@@ -12,12 +11,15 @@ import remotedevices.RemoteDevice;
  */
 public interface Locomotive extends RemoteDevice
 {
-    public Direction getDirection();
-    public void setDirection(Direction direction) throws IOException;
-    public int getSpeed();
-    public void setSpeed(int speed) throws IOException; //0-255
-    public long getPos();
-    public void addListener(LocomotiveListener listener);
-    public void removeListener(LocomotiveListener listener);
-    public enum Direction {FORWARD, BACKWARD};
+    
+    @Override
+    public long getDeviceId();
+    @Override
+    public boolean isConnected();
+    
+    public void setTargetPosition(int targetPosition);
+    public int getTargetPosition();
+    public int getPosition();
+    public void addLocomotiveListener(LocomotiveListener listener);
+    public void removeLocomotiveListener(LocomotiveListener listener); 
 }

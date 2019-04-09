@@ -106,28 +106,34 @@ public abstract class AbstractRemoteDevice implements RemoteDevice
     @Override
     public final void onConnected(RemoteDeviceConnection remoteDeviceConnection, int[] stateData)
     {
+        if(this.connection != null)
+        {
+            this.connection.close();
+            this.connection = null;
+        }
         if (getDeviceId() != remoteDeviceConnection.getDeviceId())
         {
             System.out.println("Wrong id");
-            throw new IllegalArgumentException("Device ID's must match this is " + deviceId + " connection has " + remoteDeviceConnection.getDeviceId());
+            throw new IllegalArgumentException("Device ID's must match. This is: " + deviceId + " connection has " + remoteDeviceConnection.getDeviceId());
         }
         if (getDeviceType() != remoteDeviceConnection.getDeviceType())
         {
             System.out.println("Wrong type");
-            throw new IllegalArgumentException("This is not a connection to a RailSwitch. Type should be 1, but is " + remoteDeviceConnection.getDeviceType());
+            throw new IllegalArgumentException("This is not a connection to a type " + getDeviceType() + ". Actual type but is " + remoteDeviceConnection.getDeviceType());
         }
         if (getDeviceVersion() != remoteDeviceConnection.getDeviceVersion())
         {
             System.out.println("Wrong version");
-            throw new IllegalArgumentException("This is not a connection to a RailSwitch version 1. Type should be version 1, but is " + remoteDeviceConnection.getDeviceVersion());
+            throw new IllegalArgumentException("This is not a connection to a version " + getDeviceVersion() + ". Type should be version 1, but is " + remoteDeviceConnection.getDeviceVersion());
         }
         if (factory.getMaxPackageSize() != remoteDeviceConnection.getMaxPackageSize())
         {
             System.out.println("Wrong max packagesize");
             throw new IllegalArgumentException("This connection does not have the correct maximum package size. It should be: "
-                    + factory.getMaxPackageSize() + ", but it is: " + remoteDeviceConnection.getDeviceVersion());
+                    + factory.getMaxPackageSize() + ", but it is: " + remoteDeviceConnection.getMaxPackageSize());
         }
         this.connection = remoteDeviceConnection;
+        System.out.println(getDeviceTypeName() + ": " + getDeviceId() + " connected!");
         onDeviceConnected(stateData);
         for (RemoteDeviceListener listener : listeners)
         {
@@ -136,9 +142,10 @@ public abstract class AbstractRemoteDevice implements RemoteDevice
     }
     
     @Override
-    public synchronized final void onDisconnected()
+    public final void onDisconnected()
     {
         this.connection = null;
+        System.out.println(getDeviceTypeName() + ": " + getDeviceId() + " disconnected!");
         onDeviceDisconnected();
         for (RemoteDeviceListener listener : listeners)
         {

@@ -3,7 +3,6 @@
  */
 package legotrainproject.railroadswitch;
 
-import java.io.IOException;
 import remotedevices.RemoteDeviceView;
 
 /**
@@ -19,7 +18,7 @@ public interface RailroadSwitch extends RemoteDeviceView
     @Override
     public boolean isConnected();
     //1 -> left, 2 -> right
-    public boolean switchTo(int position) throws IOException;
+    public void switchTo(int position);
     
     //0 -> Unknown position
     //1 -> Train goes left

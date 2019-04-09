@@ -17,7 +17,7 @@ import remotedevices.implementation.AbstractRemoteDeviceFactory;
  */
 public class LocomotiveFactoryImpl extends AbstractRemoteDeviceFactory implements LocomotiveFactory
 {
-    private Set<LocomotiveFactoryListener> listeners;
+    private final Set<LocomotiveFactoryListener> listeners;
     
     public LocomotiveFactoryImpl()
     {
@@ -40,13 +40,13 @@ public class LocomotiveFactoryImpl extends AbstractRemoteDeviceFactory implement
     @Override
     public synchronized int getDeviceVersion()
     {
-        return 1;
+        return 2;
     }
 
     @Override
     public synchronized int getMaxPackageSize()
     {
-        return 7;
+        return 8;
     }
 
 
@@ -63,9 +63,9 @@ public class LocomotiveFactoryImpl extends AbstractRemoteDeviceFactory implement
     }
     
     @Override
-    public synchronized LocomotiveImpl newLocomotive(long deviceId, RemoteDeviceServer server)
+    public synchronized LocomotiveV2Impl newLocomotive(long deviceId, RemoteDeviceServer server)
     {
-        LocomotiveImpl res = new LocomotiveImpl(deviceId, this);
+        LocomotiveV2Impl res = new LocomotiveV2Impl(deviceId, this);
         for(LocomotiveFactoryListener listener : listeners)
         {
             listener.onNewLocomotive(res);

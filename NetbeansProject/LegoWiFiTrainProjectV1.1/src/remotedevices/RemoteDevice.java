@@ -7,5 +7,5 @@ package remotedevices;
  *
  * @author Tobias Grundtvig <tgrundtvig@gmail.com>
  */
-public interface RemoteDevice extends RemoteDeviceView, RemoteDeviceCallbacks
+public interface RemoteDevice extends RemoteDeviceView, RemoteDeviceCallbacks, Updateable
 {}

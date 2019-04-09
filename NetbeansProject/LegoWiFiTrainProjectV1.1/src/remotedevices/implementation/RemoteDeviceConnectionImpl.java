@@ -21,15 +21,21 @@ public class RemoteDeviceConnectionImpl implements RemoteDeviceConnection
     private final int deviceType;
     private final int deviceVersion;
     private final int maxPackageSize;
-    private final Socket socket;
+    private final int pingTime;
+    private Socket socket;
     private final InputStream in;
     private final OutputStream out;
     private int[] byteBuffer;
     private int size;
     private boolean connected;
     private int bytesRead;
-    //private RemoteDevice device;
     private RemoteDeviceCallbacks device;
+    private long lastReceiveTime = 0;
+    private long lastSentTime = 0;
+    private long pingSentTime = 0;
+    private boolean pingSent = false;
+    private boolean dataSent = false;
+    private boolean dataReceived = false;
 
     public RemoteDeviceConnectionImpl(Socket socket) throws IOException
     {
@@ -42,6 +48,7 @@ public class RemoteDeviceConnectionImpl implements RemoteDeviceConnection
         deviceType = (int) readInteger(4);
         deviceVersion = (int) readInteger(4);
         maxPackageSize = (int) readInteger(2);
+        pingTime = (int) readInteger(4);
         byteBuffer = null;
         size = 0;
     }
@@ -92,12 +99,14 @@ public class RemoteDeviceConnectionImpl implements RemoteDeviceConnection
                 byteBuffer[i] = readByte();
             }
             connected = true;
+            System.out.println(deviceId + ": Connected!");
             device.onConnected(this, byteBuffer);
             byteBuffer = null;
+            lastReceiveTime = System.currentTimeMillis();
             return true;
         } catch (IOException ex)
         {
-            onIOException();
+            onIOException(ex);
             return false;
         }
     }
@@ -115,7 +124,7 @@ public class RemoteDeviceConnectionImpl implements RemoteDeviceConnection
             close();
         } catch (IOException ex)
         {
-            onIOException();
+            onIOException(ex);
         }
     }
 
@@ -134,10 +143,11 @@ public class RemoteDeviceConnectionImpl implements RemoteDeviceConnection
                 out.write(byteBuffer[i]);
             }
             out.flush();
+            dataSent = true;
             return true;
         } catch (IOException ex)
         {
-            onIOException();
+            onIOException(ex);
             return false;
         }
     }
@@ -157,14 +167,15 @@ public class RemoteDeviceConnectionImpl implements RemoteDeviceConnection
         }
         try
         {
-
+            out.write(0);
             out.write(1);
             out.write(b);
             out.flush();
+            dataSent = true;
             return true;
         } catch (IOException ex)
         {
-            onIOException();
+            onIOException(ex);
             return false;
         }
     }
@@ -196,7 +207,6 @@ public class RemoteDeviceConnectionImpl implements RemoteDeviceConnection
             int tmp = data >> (i * 8);
             out.write(tmp);
         }
-
     }
 
     private void sendResponse(ErrorCode response) throws IOException
@@ -205,24 +215,11 @@ public class RemoteDeviceConnectionImpl implements RemoteDeviceConnection
         out.flush();
     }
 
-    private void onIOException()
+    private void onIOException(IOException e)
     {
-        connected = false;
-        //ToDo: what about reader thread...
-        if (device != null)
-        {
-            device.onDisconnected();
-            device = null;
-        }
-        if (socket != null)
-        {
-            try
-            {
-                socket.close();
-            } catch (IOException ex)
-            {
-            }
-        }
+        System.out.print(deviceId + ": IOException!");
+        System.out.println(e.getMessage());
+        close();
     }
 
     @Override
@@ -232,10 +229,54 @@ public class RemoteDeviceConnectionImpl implements RemoteDeviceConnection
         {
             return;
         }
+        if (dataSent)
+        {
+            lastSentTime = curTime;
+            dataSent = false;
+        }
+        if(dataReceived)
+        {
+            pingSent = false;
+            lastReceiveTime = curTime;
+            dataReceived = false;
+        }
         try
         {
+            if (pingSent)
+            {
+                if (curTime - pingSentTime > pingTime)
+                {
+                    //We have not heard a pong in due time after we sent a ping.
+                    //We will consider this line as broken.
+                    print(curTime, deviceId + ": Did not get a pong! " + (curTime - pingSentTime) + "/" + pingTime);
+                    close();
+                    return;
+                }
+            } else
+            {
+                if (curTime - lastReceiveTime > pingTime && bytesRead != 0)
+                {
+                    //We are stopped in the middle of a transmission
+                    print(curTime, deviceId + ": Stopped in transmission! " + (curTime - lastReceiveTime) + "/" + pingTime);
+                    close();
+                    return;
+                }
+                if (curTime - lastSentTime > pingTime && bytesRead == 0)
+                {
+                    // We have not sent anything in a little while,
+                    // so we send a ping...
+                    print(curTime, deviceId + ": Sending ping!");
+                    out.write(0);
+                    out.write(0);
+                    out.flush();
+                    lastSentTime = curTime;
+                    pingSent = true;
+                    pingSentTime = curTime;
+                }
+            }
             while (in.available() > 0)
             {
+                dataReceived = true;
                 switch (bytesRead)
                 {
                     case 0:
@@ -248,9 +289,10 @@ public class RemoteDeviceConnectionImpl implements RemoteDeviceConnection
                         ++bytesRead;
                         if (size == 0)
                         {
-                            //We have an empty package
+                            //We have an empty package, this is a pong...
+                            print(curTime, deviceId + " Got pong!");
                             bytesRead = 0;
-                            device.onPackageReceived(null);
+                            pingSent = false;
                             return;
                         }
                         break;
@@ -270,26 +312,30 @@ public class RemoteDeviceConnectionImpl implements RemoteDeviceConnection
                         }
                 }
             }
-        } catch (IOException e)
+        } catch (IOException ex)
         {
-            onIOException();
+            onIOException(ex);
         }
     }
 
     @Override
     public void close()
     {
-        connected = false;
-        if (device != null)
+        if (connected)
         {
-            device.onDisconnected();
-            device = null;
+            connected = false;
+            if (device != null)
+            {
+                device.onDisconnected();
+            }
         }
+        device = null;
         if (socket != null)
         {
             try
             {
                 socket.close();
+                socket = null;
             } catch (IOException ex)
             {
             }
@@ -300,5 +346,10 @@ public class RemoteDeviceConnectionImpl implements RemoteDeviceConnection
     {
         int b = in.read();
         return b < 0 ? 256 + b : b;
+    }
+
+    private void print(long curTime, String s)
+    {
+        System.out.println((curTime % 100000) + ": " + s);
     }
 }

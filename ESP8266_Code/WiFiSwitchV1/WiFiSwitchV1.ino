@@ -9,9 +9,10 @@
 
 #define DEVICE_TYPE 1 //1 -> SWITCH
 #define DEVICE_VERSION 1
-#define DEVICE_TYPE_NAME "RIGHT_SWITCH"
-#define SWITCH_DIRECTION 6 //5 = LEFT SWITCH, 6 = RIGHT SWITCH
+#define DEVICE_TYPE_NAME "LEFT_SWITCH"
+#define SWITCH_DIRECTION 5 //5 = LEFT SWITCH, 6 = RIGHT SWITCH
 #define MAX_PACKAGE_SIZE 2
+#define PING_TIME 5000
 
 
 #define HALFSTEP 8
@@ -46,10 +47,12 @@ RemoteDevice device(  onPackageReceived,
                       (uint32_t) DEVICE_TYPE,
                       (uint32_t) DEVICE_VERSION,
                       (char*) DEVICE_TYPE_NAME,
-                      (uint16_t) MAX_PACKAGE_SIZE );
+                      (uint16_t) MAX_PACKAGE_SIZE,
+                      (uint32_t) PING_TIME          );
 
 bool onSendInitializationPackage()
 {
+  digitalWrite(D4, LOW);
   switch(initState)
   {
     case 0:
@@ -105,7 +108,7 @@ void setup()
 
   pinMode(D6, INPUT_PULLUP);
   pinMode(D4, OUTPUT);     // Initialize the LED_BUILTIN pin as an output
-  digitalWrite(D4, HIGH);
+  digitalWrite(D4, HIGH); //Turn it off
   
   //initialize switch
   stepper1.setMaxSpeed(800.0);
@@ -119,7 +122,7 @@ void setup()
   //WiFiManager
   //Local intialization. Once its business is done, there is no need to keep it around
   boolean resetWiFi = !digitalRead(D6);
-  device.start("192.168.0.140",3377,resetWiFi);
+  device.start("192.168.43.125",3377,resetWiFi);
 }
 
 void loop()
@@ -147,6 +150,7 @@ void onPackageReceived(uint8_t data[], uint16_t size)
     case 1:
       if(state != 1 && nextState != 1)
       {
+        digitalWrite(D4, HIGH);
         nextState = 1;
         state = 3;
         stepper1.moveTo(-moveRange);
@@ -155,6 +159,7 @@ void onPackageReceived(uint8_t data[], uint16_t size)
     case 2:
       if(state != 2 && nextState != 2)
       {
+        digitalWrite(D4, HIGH);
         nextState = 2;
         state = 4;
         stepper1.moveTo(moveRange);

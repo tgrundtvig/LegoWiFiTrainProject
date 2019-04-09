@@ -7,9 +7,6 @@
 #include <WiFiManager.h>
 #include "RemoteDevice.h"
 
-#define DEFAULT_SERVER_RESPONSE_TIMEOUT 5000;
-#define DEFAULT_RECONNECTION_INTERVAL 5000;
-
 //Default callback functions
 
 void _defaultOnConnectedToWiFi()
@@ -67,7 +64,8 @@ RemoteDevice::RemoteDevice(	void (*onPackageReceived) (uint8_t data[], uint16_t 
 							uint32_t deviceType,
 							uint32_t deviceVersion,
 							char* typeName,
-							uint16_t maxPackageSize										)
+							uint16_t maxPackageSize,
+              uint32_t pingTime              )
 {
 	_onPackageReceived = onPackageReceived;
 	_onSendInitializationPackage = onSendInitializationPackage;
@@ -79,10 +77,12 @@ RemoteDevice::RemoteDevice(	void (*onPackageReceived) (uint8_t data[], uint16_t 
 	_deviceType = deviceType;
 	_deviceVersion = deviceVersion;
 	_maxPackageSize = maxPackageSize;
+  _pingTime = pingTime;
 	_lastConnectionAttempt = 0;
-	_serverResponseTimeout = DEFAULT_SERVER_RESPONSE_TIMEOUT;
-	_reconnectionInterval = DEFAULT_RECONNECTION_INTERVAL;
+	_serverResponseTimeout = 2*_pingTime;
+	_reconnectionInterval = _pingTime;
 	_serverTimeout = 0;
+  _curTime = 0;
   _client.setSync(true);
 	// ConnectionState:
   // 0 -> Not on WiFi,
@@ -152,8 +152,9 @@ bool RemoteDevice::isConnected()
 // 3 -> Accepted by server, waiting to send init package, 
 // 4 -> Initializationpackage sent, ready to work.
 
-void RemoteDevice::update()
+void RemoteDevice::update(unsigned long curTime)
 {
+  _curTime = curTime;
 	_updateConnectionState();
   switch(_connectionState)
   {
@@ -175,6 +176,9 @@ void RemoteDevice::update()
       if(_onSendInitializationPackage())
       {
         _connectionState = 4;
+        _bytesRead = 0;
+        _packageSize = -1;
+        _serverTimeout = _curTime;
       }
       break;
     case 4:
@@ -217,7 +221,7 @@ void RemoteDevice::_updateConnectionState()
 
 void RemoteDevice::_tryConnectToServer()
 {
-  if(millis() - _lastConnectionAttempt < _reconnectionInterval)
+  if(_curTime - _lastConnectionAttempt < _reconnectionInterval)
   {
     //Not time to try to connect yet.
     return;
@@ -225,14 +229,13 @@ void RemoteDevice::_tryConnectToServer()
 	_onTryConnectToServer(_host, _port);
 	if(!_client.connect(_host, _port))
 	{
-    _lastConnectionAttempt = millis();
+    _lastConnectionAttempt = _curTime;
     _onConnectionToServerFailed();
     return;
 	}
 	_sendHandshakeData();
   _connectionState = 2;
   _onConnectedToServer();
-  _serverTimeout = millis();
 }
 
 void RemoteDevice::_sendHandshakeData()
@@ -264,6 +267,14 @@ void RemoteDevice::_sendHandshakeData()
 		uint8_t data = (uint8_t) (_maxPackageSize >> (i*8));
 		_client.write(data);
 	}
+  
+  //Send ping time
+	for(int i = 3; i >= 0; --i)
+	{
+		uint8_t data = (uint8_t) (_pingTime >> (i*8));
+		_client.write(data);
+	}
+
 	//Done writing, flush client.
 	_client.flush();
 }
@@ -286,16 +297,16 @@ void RemoteDevice::_handleWaitingForServerAcceptance()
       //Empty buffer
       _client.stop();
       _connectionState = 1;
-      _lastConnectionAttempt = millis();
+      _lastConnectionAttempt = _curTime;
       _onRejectedByServer(response);
     }
   }
-  else if(millis() - _serverTimeout > _serverResponseTimeout)
+  else if(_curTime - _serverTimeout > _serverResponseTimeout)
   {
     //Server has not accepted in due time
     _client.stop();
     _connectionState = 1;
-    _lastConnectionAttempt = millis();
+    _lastConnectionAttempt = _curTime;
     _onServerResponseTimedOut();
   }
 }
@@ -320,10 +331,22 @@ void RemoteDevice::_handleNormalOperation()
       ++_bytesRead;
       if(_packageSize == 0)
       {
-        //This is an empty package...
-        _onPackageReceived(_dataBuffer, _packageSize);
+        //This is an empty package which is a ping...
+        //So we just send a pong...
+        Serial.print("Got ping at ");
+        Serial.println(_curTime);
+        Serial.println("Sending pong!");
+        sendPackage(_dataBuffer, 0);
         _bytesRead = 0;
         _packageSize = -1;
+        
+      }
+      else if(_packageSize > _maxPackageSize)
+      {
+        Serial.println("Package size is too big!");
+        _client.stop();
+        _connectionState = 1;
+        _onDisconnectedFromServer();
       }
     } 
     else
@@ -339,11 +362,16 @@ void RemoteDevice::_handleNormalOperation()
         _packageSize = -1;
       }
     }
-    _serverTimeout = millis();
+    _serverTimeout = _curTime;
   }
-  else if(_bytesRead > 0 && millis() - _serverTimeout > _serverResponseTimeout)
+  else if(_curTime - _serverTimeout > _serverResponseTimeout)
   {
-    //Server stopped in the middle of sending a package...
+    //Server is silent for too long
+    Serial.print(_curTime);
+    Serial.print(": Server was silent for too long...");
+    Serial.print(_curTime - _serverTimeout);
+    Serial.print(" / ");
+    Serial.println(_serverResponseTimeout);
     _client.stop();
     _connectionState = 1;
     _onServerResponseTimedOut();
@@ -351,11 +379,6 @@ void RemoteDevice::_handleNormalOperation()
   }
 }
 
-void RemoteDevice::_onDisconnected()
-{
-}
-
-	
 void RemoteDevice::setOnConnectedToWiFi(void (*onConnectedToWiFi)())
 {
 	_onConnectedToWiFi = onConnectedToWiFi;

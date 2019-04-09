@@ -17,10 +17,11 @@ class RemoteDevice
 						uint32_t deviceType,
 						uint32_t deviceVersion,
 						char* typeName,
-						uint16_t maxPackageSize										);
+						uint16_t maxPackageSize,
+            uint32_t pingTime);
 		void start(char* host, uint16_t port, bool resetWiFi);
 		bool sendPackage(uint8_t data[], uint16_t size);
-		void update();
+		void update(unsigned long curTime);
     // ConnectionState:
     // 0 -> Not on WiFi,
     // 1 -> On WiFi, not connected to server,
@@ -64,14 +65,16 @@ class RemoteDevice
 		uint32_t _deviceType;
 		uint32_t _deviceVersion;
 		uint16_t _maxPackageSize;
+    uint32_t _pingTime;
 		
-		long _serverResponseTimeout;
+		unsigned long _serverResponseTimeout;
 		uint8_t* _dataBuffer;
 		int _packageSize;
 		int _bytesRead;
 		unsigned long _lastConnectionAttempt;
 		unsigned long _serverTimeout;
 		unsigned long _reconnectionInterval;
+    unsigned long _curTime;
 		// ConnectionState:
     // 0 -> Not on WiFi,
     // 1 -> On WiFi, not connected to server,
@@ -85,7 +88,6 @@ class RemoteDevice
     void _sendHandshakeData();
     void _handleWaitingForServerAcceptance();
     void _handleNormalOperation();
-    void _onDisconnected();
 };
 
 #endif

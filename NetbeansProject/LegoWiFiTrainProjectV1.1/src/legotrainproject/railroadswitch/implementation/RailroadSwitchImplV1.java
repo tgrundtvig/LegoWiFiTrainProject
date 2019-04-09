@@ -26,8 +26,12 @@ public class RailroadSwitchImplV1 extends AbstractRemoteDevice implements Railro
     private final int[] byteBuffer;
     
     //State
-    private volatile int switchDirection;
-    private volatile int state;
+    private int switchDirection;
+    private int state;
+    private int targetState;
+    private boolean targetTransmitted;
+    private long targetTransmittedTime;
+    
     
 
     protected RailroadSwitchImplV1(long deviceId, RemoteDeviceFactory factory)
@@ -35,8 +39,10 @@ public class RailroadSwitchImplV1 extends AbstractRemoteDevice implements Railro
         super(deviceId, factory);
         switchDirection = 0;
         state = 0;
+        targetState = 1;
         listeners = new HashSet<>();
         byteBuffer = new int[getMaxPackageSize()];
+        targetTransmittedTime = 0;
     }
     
     @Override
@@ -52,47 +58,50 @@ public class RailroadSwitchImplV1 extends AbstractRemoteDevice implements Railro
     }
 
     @Override
-    public boolean switchTo(int position) throws IOException
+    public void switchTo(int position)
     {
-        if (position == 1 && state != 1 && state != 3)
+        switch(position)
         {
-            setState(3);
-            byteBuffer[0] = 1;
-            sendPackage(byteBuffer, 1);
-            return true;
-        }
-        if (position == 2 && state != 2 && state != 4)
-        {
-            setState(4);
-            byteBuffer[0] = 2;
-            sendPackage(byteBuffer, 1);
-            return true;
-        }
-        return false;
+            case 1:   
+                if(state != 1 && state != 3)
+                {
+                    targetState = 1;
+                    targetTransmitted = false;
+                    newState(3);
+                }
+                break;
+            case 2:
+                if(state != 2 && state != 4)
+                {
+                    targetState = 2;
+                    targetTransmitted = false;
+                    newState(4);
+                }
+                break;
+            default:
+                throw new RuntimeException("Invalid switch target state: " + position);
+        }      
     }
 
     @Override
-    public synchronized void addListener(RailroadSwitchListener listener)
+    public void addListener(RailroadSwitchListener listener)
     {
         listeners.add(listener);
     }
 
     @Override
-    public synchronized void removeListener(RailroadSwitchListener listener)
+    public void removeListener(RailroadSwitchListener listener)
     {
         listeners.remove(listener);
     }
 
-    private synchronized void setState(int newState)
+    private void newState(int newState)
     {
-        if (newState != state)
+        int tmp = state;
+        state = newState;
+        for(RailroadSwitchListener listener : listeners)
         {
-            int tmp = state;
-            state = newState;
-            for(RailroadSwitchListener listener : listeners)
-            {
-                listener.onRailroadSwitchStateChange(this, tmp, state);
-            }
+            listener.onRailroadSwitchStateChange(this, tmp, state);
         }
     }
 
@@ -100,8 +109,11 @@ public class RailroadSwitchImplV1 extends AbstractRemoteDevice implements Railro
     public void onDeviceConnected(int[] initData)
     {
         switchDirection = initData[0];
-        state = initData[1];
-        System.out.println(getDeviceTypeName() + ": " + getDeviceId() + " connected!");
+        if(initData[1] != state)
+        {
+            newState(initData[1]);
+        }
+        targetTransmitted = false;
     }
 
     @Override
@@ -110,7 +122,10 @@ public class RailroadSwitchImplV1 extends AbstractRemoteDevice implements Railro
         int feedback = byteData[0];
         if(feedback <= 4)
         {
-            setState(feedback);
+            if(feedback != state)
+            {
+                newState(feedback);
+            }
         }
         else if(feedback == 5)
         {
@@ -129,6 +144,41 @@ public class RailroadSwitchImplV1 extends AbstractRemoteDevice implements Railro
     @Override
     public void onDeviceDisconnected()
     {
-        System.out.println(getDeviceTypeName() + ": " + getDeviceId() + " disconnected!");
+        
+    }
+
+    @Override
+    public void update(long curTime)
+    {
+        if(targetState != state && curTime - targetTransmittedTime > 5000)
+        {
+            targetTransmitted = false;
+            if(isConnected())
+            {
+                //Ask for an update
+                System.out.println("Asking for an update on the state...");
+                byteBuffer[0] = 0;
+                try
+                {
+                    sendPackage(byteBuffer, 1);
+                } catch (IOException ex)
+                {       
+                }
+            }
+        }
+        if(!targetTransmitted && isConnected())
+        {
+            System.out.print(getDeviceTypeName() + ": " + getDeviceId() + " transmitting target: " + targetState + " ... ");
+            byteBuffer[0] = targetState;
+            try
+            {
+                sendPackage(byteBuffer, 1);
+                targetTransmitted = true;
+                targetTransmittedTime = curTime;
+            } catch (IOException ex)
+            {
+            }
+            System.out.println(targetTransmitted);
+        }
     }
 }

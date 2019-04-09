@@ -122,6 +122,11 @@ public class RemoteDeviceServerImpl implements RemoteDeviceServer
         }
         connections.removeAll(deadConnections);
         deadConnections.clear();
+        //Update devices
+        for(RemoteDevice device : devices.values())
+        {
+            device.update(curTime);
+        }
     }
 
     public void updateNewConnections()
@@ -152,6 +157,7 @@ public class RemoteDeviceServerImpl implements RemoteDeviceServer
                 if(connection.acceptConnectionWithDevice(device))
                 {
                     connections.add(connection);
+                    devices.put(device.getDeviceId(), device);
                 }
             }
         }
