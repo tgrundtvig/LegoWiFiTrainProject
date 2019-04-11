@@ -265,7 +265,7 @@ public class RemoteDeviceConnectionImpl implements RemoteDeviceConnection
                 {
                     // We have not sent anything in a little while,
                     // so we send a ping...
-                    print(curTime, deviceId + ": Sending ping!");
+                    //print(curTime, deviceId + ": Sending ping!");
                     out.write(0);
                     out.write(0);
                     out.flush();
@@ -290,7 +290,7 @@ public class RemoteDeviceConnectionImpl implements RemoteDeviceConnection
                         if (size == 0)
                         {
                             //We have an empty package, this is a pong...
-                            print(curTime, deviceId + " Got pong!");
+                            //print(curTime, deviceId + " Got pong!");
                             bytesRead = 0;
                             pingSent = false;
                             return;
