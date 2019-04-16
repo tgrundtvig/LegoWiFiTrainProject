@@ -36,17 +36,6 @@ RemoteDeviceBase::RemoteDeviceBase(const char *deviceTypeName,
   pinMode(wiFiResetPin, INPUT_PULLUP);
   delay(10);
   _resetWiFi = !digitalRead(wiFiResetPin);
-  //_resetWiFi = true;
-
-  //Mount filesystem
-  if (SPIFFS.begin())
-  {
-    Serial.println("Filesystem mounted.");
-  }
-  else
-  {
-    Serial.println("Failed to mount filesystem.");
-  }
 }
 
 // ConnectionState:
@@ -344,14 +333,31 @@ bool RemoteDeviceBase::_readPackage(unsigned long curTime)
 
 void RemoteDeviceBase::_startWiFi()
 {
+  Serial.println("Loading configuration file.");
+  Serial.print("Mounting filesystem : ");
+  //Mount filesystem
+  if (SPIFFS.begin())
+  {
+    Serial.println("Succes.");
+  }
+  else
+  {
+    Serial.println("Failed.");
+  }
+  Serial.print("Reset WiFi button pushed? : ");
+  Serial.println(_resetWiFi);
   _shouldSaveConfig = false;
   //Setting default values
   strcpy(_config.hostname, "");
   _config.port = 3377;
   //Loading from file if exists
   bool configLoaded = _loadConfiguration();
+  Serial.print("Configuration loaded : ");
+  Serial.println(configLoaded);
   char strPort[8];
   itoa(_config.port, strPort, 10);
+
+  Serial.println("Starting WiFi...");
   WiFiManagerParameter custom_host("host", "device server ip", _config.hostname, 64);
   WiFiManagerParameter custom_port("port", "device server port", strPort, 8);
   WiFiManager wifiManager;
@@ -379,7 +385,6 @@ void RemoteDeviceBase::_startWiFi()
 // Loads the configuration from a file
 bool RemoteDeviceBase::_loadConfiguration()
 {
-  /*
   if (SPIFFS.exists("/config.json"))
   {
     //file exists, reading and loading
@@ -420,14 +425,12 @@ bool RemoteDeviceBase::_loadConfiguration()
     Serial.println("Config file does not exist.");
     return false;
   }
-  */
  return false;
 }
 
 // Saves the configuration to a file
 void RemoteDeviceBase::_saveConfiguration()
 {
-  /*
   // Delete existing file, otherwise the configuration is appended to the file
   SPIFFS.remove("/config.json");
 
@@ -456,7 +459,6 @@ void RemoteDeviceBase::_saveConfiguration()
 
   // Close the file
   configFile.close();
-*/
 }
 
 void RemoteDeviceBase::_onSaveConfigCallback()

@@ -1,5 +1,5 @@
 // Motor pin definitions
-#define IS_LEFT_SWITCH false 
+#define IS_LEFT_SWITCH true 
 #define MOTOR_PIN_1 D1 // IN1 on the ULN2003 driver
 #define MOTOR_PIN_2 D2 // IN2 on the ULN2003 driver
 #define MOTOR_PIN_3 D3 // IN3 on the ULN2003 driver
