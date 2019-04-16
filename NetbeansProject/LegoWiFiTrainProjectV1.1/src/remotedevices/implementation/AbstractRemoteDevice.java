@@ -22,6 +22,7 @@ public abstract class AbstractRemoteDevice implements RemoteDevice
     private final RemoteDeviceFactory factory;
     private final Set<RemoteDeviceListener> listeners;
     private volatile RemoteDeviceConnection connection;
+    private boolean connected;
     
     public AbstractRemoteDevice(long deviceId, RemoteDeviceFactory factory)
     {
@@ -29,6 +30,7 @@ public abstract class AbstractRemoteDevice implements RemoteDevice
         this.factory = factory;
         this.listeners = new HashSet<>();
         this.connection = null;
+        this.connected = false;
     }
     
     protected abstract void onDeviceConnected(int[] stateData);
@@ -94,7 +96,7 @@ public abstract class AbstractRemoteDevice implements RemoteDevice
     @Override
     public final boolean isConnected()
     {
-        return connection != null;
+        return connected;
     }
     
     @Override
@@ -104,7 +106,7 @@ public abstract class AbstractRemoteDevice implements RemoteDevice
     }
     
     @Override
-    public final void onConnected(RemoteDeviceConnection remoteDeviceConnection, int[] stateData)
+    public final void onIdentified(RemoteDeviceConnection remoteDeviceConnection)
     {
         if(this.connection != null)
         {
@@ -133,24 +135,37 @@ public abstract class AbstractRemoteDevice implements RemoteDevice
                     + factory.getMaxPackageSize() + ", but it is: " + remoteDeviceConnection.getMaxPackageSize());
         }
         this.connection = remoteDeviceConnection;
+    }
+    
+    @Override
+    public void onInitialisationPackage(int[] initPackage)
+    {
         System.out.println(getDeviceTypeName() + ": " + getDeviceId() + " connected!");
-        onDeviceConnected(stateData);
-        for (RemoteDeviceListener listener : listeners)
+        connected = true;
+        onDeviceConnected(initPackage);
+        for(RemoteDeviceListener listener : listeners)
         {
             listener.onDeviceConnected(this);
-        }
+        } 
     }
     
     @Override
     public final void onDisconnected()
     {
-        this.connection = null;
-        System.out.println(getDeviceTypeName() + ": " + getDeviceId() + " disconnected!");
-        onDeviceDisconnected();
-        for (RemoteDeviceListener listener : listeners)
+        if(this.connection != null)
         {
-            listener.onDeviceDisonnected(this);
+            this.connection = null;
+            if(connected)
+            {
+                System.out.println(getDeviceTypeName() + ": " + getDeviceId() + " disconnected!");
+                onDeviceDisconnected();
+                for (RemoteDeviceListener listener : listeners)
+                {
+                    listener.onDeviceDisonnected(this);
+                }
+            }
         }
+        connected = false;
     }
     
     @Override

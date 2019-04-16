@@ -9,7 +9,8 @@ package remotedevices;
  */
 public interface RemoteDeviceCallbacks
 {
-    public void onConnected(RemoteDeviceConnection remoteDeviceConnection, int[] stateData);
+    public void onIdentified(RemoteDeviceConnection remoteDeviceConnection);
+    public void onInitialisationPackage(int[] initPackage);
     public void onPackageReceived(int[] packageData);
     public void onDisconnected();
 }

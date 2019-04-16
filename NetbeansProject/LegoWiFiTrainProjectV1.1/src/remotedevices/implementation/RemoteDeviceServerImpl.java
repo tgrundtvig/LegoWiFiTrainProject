@@ -155,7 +155,8 @@ public class RemoteDeviceServerImpl implements RemoteDeviceServer
             {
                 if (factory.matches(connection))
                 {
-                    device = factory.newRemoteDevice(connection.getDeviceId(), this);
+                    device = factory.newRemoteDevice(connection.getDeviceId());
+                    addDevice(device);
                     break;
                 }
             }

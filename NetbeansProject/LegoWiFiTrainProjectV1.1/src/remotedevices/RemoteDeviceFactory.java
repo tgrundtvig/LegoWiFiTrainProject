@@ -14,5 +14,5 @@ public interface RemoteDeviceFactory
     public int getDeviceVersion();
     public int getMaxPackageSize();
     public boolean matches(RemoteDeviceConnection connection);
-    public RemoteDevice newRemoteDevice(long deviceId, RemoteDeviceServer server);
+    public RemoteDevice newRemoteDevice(long deviceId);
 }

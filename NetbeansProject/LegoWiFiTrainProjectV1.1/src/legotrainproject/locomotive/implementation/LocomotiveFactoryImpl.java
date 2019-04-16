@@ -63,21 +63,20 @@ public class LocomotiveFactoryImpl extends AbstractRemoteDeviceFactory implement
     }
     
     @Override
-    public LocomotiveV2Impl newLocomotive(long deviceId, RemoteDeviceServer server)
+    public LocomotiveV2Impl newLocomotive(long deviceId)
     {
         LocomotiveV2Impl res = new LocomotiveV2Impl(deviceId, this);
         for(LocomotiveFactoryListener listener : listeners)
         {
             listener.onNewLocomotive(res);
         }
-        server.addDevice(res);
         return res;
     }
 
     @Override
-    public RemoteDevice newRemoteDevice(long deviceId, RemoteDeviceServer server)
+    public RemoteDevice newRemoteDevice(long deviceId)
     {
-        return newLocomotive(deviceId, server);
+        return newLocomotive(deviceId);
     }
 
 }

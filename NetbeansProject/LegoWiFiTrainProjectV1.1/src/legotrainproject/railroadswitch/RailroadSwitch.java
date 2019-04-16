@@ -3,13 +3,13 @@
  */
 package legotrainproject.railroadswitch;
 
-import remotedevices.RemoteDeviceView;
+import remotedevices.RemoteDevice;
 
 /**
  *
  * @author Tobias Grundtvig <tgrundtvig@gmail.com>
  */
-public interface RailroadSwitch extends RemoteDeviceView
+public interface RailroadSwitch extends RemoteDevice
 {
     @Override
     public long getDeviceId();

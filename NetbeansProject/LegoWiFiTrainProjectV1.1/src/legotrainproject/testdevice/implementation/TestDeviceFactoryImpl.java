@@ -6,12 +6,10 @@ package legotrainproject.testdevice.implementation;
 
 import java.util.HashSet;
 import java.util.Set;
-import legotrainproject.locomotive.LocomotiveFactoryListener;
 import legotrainproject.testdevice.TestDevice;
 import legotrainproject.testdevice.TestDeviceFactory;
 import legotrainproject.testdevice.TestDeviceFactoryListener;
 import remotedevices.RemoteDevice;
-import remotedevices.RemoteDeviceServer;
 import remotedevices.implementation.AbstractRemoteDeviceFactory;
 
 /**
@@ -64,21 +62,20 @@ public class TestDeviceFactoryImpl extends AbstractRemoteDeviceFactory implement
     }
     
     @Override
-    public TestDevice newTestDevice(long deviceId, RemoteDeviceServer server)
+    public TestDevice newTestDevice(long deviceId)
     {
         TestDeviceImpl res = new TestDeviceImpl(deviceId, this);
         for(TestDeviceFactoryListener listener : listeners)
         {
             listener.onNewTestDevice(res);
         }
-        server.addDevice(res);
         return res;
     }
 
     @Override
-    public RemoteDevice newRemoteDevice(long deviceId, RemoteDeviceServer server)
+    public RemoteDevice newRemoteDevice(long deviceId)
     {
-        return newTestDevice(deviceId, server);
+        return newTestDevice(deviceId);
     }
 
 }

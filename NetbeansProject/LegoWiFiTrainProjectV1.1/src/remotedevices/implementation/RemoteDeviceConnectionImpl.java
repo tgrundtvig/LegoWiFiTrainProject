@@ -25,6 +25,7 @@ public class RemoteDeviceConnectionImpl implements RemoteDeviceConnection
     private int deviceVersion;
     private int maxPackageSize;
     private long stateStartTime;
+    private int pingInterval;
 
     public RemoteDeviceConnectionImpl(PackageConnection packageConnection, RemoteDeviceServerImpl serverImpl)
     {
@@ -167,6 +168,10 @@ public class RemoteDeviceConnectionImpl implements RemoteDeviceConnection
             throw new IOException("Handshake did not arrive in due time!");
         }
         packageConnection.update(curTime);
+        if(!packageConnection.isConnected())
+        {
+            throw new IOException("Connection lost!");
+        }
         int[] packageBuffer = packageConnection.getPackageIfAvailable();
         if (packageBuffer == null)
         {
@@ -184,27 +189,27 @@ public class RemoteDeviceConnectionImpl implements RemoteDeviceConnection
         this.deviceType = (int) BufferUtil.readIntegerFromBuffer(packageBuffer, 8, 2);
         this.deviceVersion = (int) BufferUtil.readIntegerFromBuffer(packageBuffer, 10, 2);
         this.maxPackageSize = (int) BufferUtil.readIntegerFromBuffer(packageBuffer, 12, 2);
-        int pingInterval = (int) BufferUtil.readIntegerFromBuffer(packageBuffer, 14, 2);
-        int pongTimeout = 1000;
-        System.out.println("Handshake received!");
+        this.pingInterval = (int) BufferUtil.readIntegerFromBuffer(packageBuffer, 14, 2);
+        
+        System.out.println(deviceId + ": Handshake received!");
         //Get the device from the device server
         this.device = serverImpl.getDevice(this);
         int[] response = new int[1];
         if (device != null)
         {
             //Device accepted
-            System.out.println("Device accepted!");
+            System.out.println(deviceId + ": Device accepted!");
+            device.onIdentified(this);
             response[0] = 0;
             packageConnection.writePackage(response);
-            packageConnection.setPingPongTiming(pingInterval, pongTimeout);
             return true;
         }
         //Device rejected
-        System.out.println("Device rejected!");
+        System.out.println(deviceId + ": Device rejected!");
         response[0] = 1;
         packageConnection.writePackage(response);
         packageConnection.disconnect();
-        throw new IOException("The device was rejected!");
+        throw new IOException(deviceId + ": The device was rejected!");
     }
 
     private boolean handleInitialization(long curTime) throws IOException
@@ -215,19 +220,28 @@ public class RemoteDeviceConnectionImpl implements RemoteDeviceConnection
             throw new IOException("Initialization package did not arrive in due time!");
         }
         packageConnection.update(curTime);
+        if(!packageConnection.isConnected())
+        {
+            throw new IOException("Connection lost!");
+        }
         int[] packageBuffer = packageConnection.getPackageIfAvailable();
         if (packageBuffer == null)
         {
             //No package yet...
             return false;
         }
-        device.onConnected(this, packageBuffer);
+        device.onInitialisationPackage(packageBuffer);
+        packageConnection.setPingPongTiming(pingInterval, 5000);
         return true;
     }
 
     private void handleUpdate(long curTime) throws IOException
     {
         packageConnection.update(curTime);
+        if(!packageConnection.isConnected())
+        {
+            throw new IOException("Connection lost!");
+        }
         int[] packageBuffer = packageConnection.getPackageIfAvailable();
         if (packageBuffer != null)
         {
@@ -243,7 +257,7 @@ public class RemoteDeviceConnectionImpl implements RemoteDeviceConnection
             packageConnection.disconnect();
             packageConnection = null;
         }
-        if (device != null && state == 3)
+        if (device != null)
         {
             device.onDisconnected();
         }

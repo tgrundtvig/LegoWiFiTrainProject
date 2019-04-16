@@ -39,10 +39,14 @@ public class OneLocomotiveTestDrive
             System.out.println("RailroadSwitch handle created: " + newRailroadSwitch.getDeviceId());
         }));
         //Locomotive loco = locFactory.newLocomotive(14815215, server);
-        Locomotive loco = locFactory.newLocomotive(77992, server);
-        RailroadSwitch switchA = switchFactory.newRailroadSwitch(759149, server);
-        RailroadSwitch switchB = switchFactory.newRailroadSwitch(169822, server);
-        RailroadSwitch switchC = switchFactory.newRailroadSwitch(959028, server);
+        Locomotive loco = locFactory.newLocomotive(77992);
+        server.addDevice(loco);
+        RailroadSwitch switchA = switchFactory.newRailroadSwitch(759149);
+        server.addDevice(switchA);
+        RailroadSwitch switchB = switchFactory.newRailroadSwitch(169822);
+        server.addDevice(switchB);
+        RailroadSwitch switchC = switchFactory.newRailroadSwitch(959028);
+        server.addDevice(switchC);
         server.startServer(3377);
         System.out.println("Server started!");
         int round = 29;

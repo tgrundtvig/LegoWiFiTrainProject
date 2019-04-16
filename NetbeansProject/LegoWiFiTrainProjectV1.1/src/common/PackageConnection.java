@@ -69,10 +69,7 @@ public class PackageConnection implements Updateable
         }
         try
         {
-            if (pingInterval > 0)
-            {
-                handlePingPong(curTime);
-            }
+            handlePingPong(curTime);
             readPackage(curTime);
         } catch (IOException e)
         {
@@ -125,11 +122,20 @@ public class PackageConnection implements Updateable
     
     private void handlePingPong(long curTime) throws IOException
     {
+        if(pingInterval <= 0)
+        {
+            return;
+        }
         if(pingSent)
         {
             if (curTime - pingSentTime > pongTimeout)
             {
                 //We did not recieve a pong in due time
+                System.out.println("Pong not received!");
+                System.out.println("curTime: " + curTime);
+                System.out.println("pingSentTime: " + pingSentTime);
+                System.out.println("curTime - pingSentTime: " + (curTime- pingSentTime));
+                System.out.println("pongTimeout: " + pongTimeout);
                 throw new IOException("Did not get pong in due time.");
             }
         }
@@ -138,7 +144,7 @@ public class PackageConnection implements Updateable
             if(curTime - pingSentTime > pingInterval)
             {
                 //It is time to sent a ping
-                System.out.println("Ping sent!");
+                //System.out.println("Ping sent!");
                 out.write(0);
                 out.write(0);
                 out.flush();
@@ -174,12 +180,12 @@ public class PackageConnection implements Updateable
                         //This is a pong.
                         bytesRead = 0;
                         pingSent = false;
-                        System.out.println("Pong return time: " + (curTime - pingSentTime));
+                        //System.out.println("Pong return time: " + (curTime - pingSentTime));
                     }
                     break;
                 case 2:
                     byteBuffer = new int[packageSize];
-                //break is intentionally omittesd to let it fall through
+                //break is intentionally omitted to let it fall through
                 default:
                     byteBuffer[bytesRead - 2] = readByte();
                     ++bytesRead;
@@ -188,6 +194,11 @@ public class PackageConnection implements Updateable
                         bytesRead = 0;
                         readyPackage = byteBuffer;
                         byteBuffer = null;
+                        //System.out.println("Recieved package of size: " + packageSize);
+                        /*for(int i = 0; i < packageSize; ++i)
+                        {
+                            System.out.println("data["+i+"] : "+ readyPackage[i]);
+                        }*/
                     }
             }
         }

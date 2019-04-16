@@ -3,15 +3,13 @@
  */
 package legotrainproject.testdevice;
 
-import remotedevices.RemoteDeviceServer;
-
 /**
  *
  * @author Tobias Grundtvig <tgrundtvig@gmail.com>
  */
 public interface TestDeviceFactory
 {
-    public TestDevice newTestDevice(long deviceId, RemoteDeviceServer server);
+    public TestDevice newTestDevice(long deviceId);
     public void addListener(TestDeviceFactoryListener listener);
     public boolean removeListener(TestDeviceFactoryListener listener);
 }

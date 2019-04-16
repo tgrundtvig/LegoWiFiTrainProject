@@ -38,11 +38,16 @@ public class TwoLocomotiveTestDrive
         {
             System.out.println("RailroadSwitch handle created: " + newRailroadSwitch.getDeviceId());
         }));
-        Locomotive locoA = locFactory.newLocomotive(758391, server);
-        Locomotive locoB = locFactory.newLocomotive(77992, server);
-        RailroadSwitch switchA = switchFactory.newRailroadSwitch(759149, server);
-        RailroadSwitch switchB = switchFactory.newRailroadSwitch(169822, server);
-        RailroadSwitch switchC = switchFactory.newRailroadSwitch(959028, server);
+        Locomotive locoA = locFactory.newLocomotive(758391);
+        server.addDevice(locoA);
+        Locomotive locoB = locFactory.newLocomotive(77992);
+        server.addDevice(locoB);
+        RailroadSwitch switchA = switchFactory.newRailroadSwitch(759149);
+        server.addDevice(switchA);
+        RailroadSwitch switchB = switchFactory.newRailroadSwitch(169822);
+        server.addDevice(switchB);
+        RailroadSwitch switchC = switchFactory.newRailroadSwitch(959028);
+        server.addDevice(switchC);
         server.startServer(3377);
         System.out.println("Server started!");
         int round = 29;

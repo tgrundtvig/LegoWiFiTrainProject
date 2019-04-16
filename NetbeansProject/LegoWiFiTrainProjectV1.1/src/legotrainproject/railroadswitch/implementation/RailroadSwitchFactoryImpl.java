@@ -63,21 +63,20 @@ public class RailroadSwitchFactoryImpl extends AbstractRemoteDeviceFactory imple
     }
     
     @Override
-    public synchronized RailroadSwitchImplV1 newRailroadSwitch(long deviceId, RemoteDeviceServer server)
+    public synchronized RailroadSwitchImpl newRailroadSwitch(long deviceId)
     {
-        RailroadSwitchImplV1 res = new RailroadSwitchImplV1(deviceId, this);
+        RailroadSwitchImpl res = new RailroadSwitchImpl(deviceId, this);
         for(RailroadSwitchFactoryListener listener : listeners)
         {
             listener.onNewRailroadSwitch(res);
         }
-        server.addDevice(res);
         return res;
     }
 
     @Override
-    public synchronized RemoteDevice newRemoteDevice(long deviceId, RemoteDeviceServer server)
+    public synchronized RemoteDevice newRemoteDevice(long deviceId)
     {
-        return newRailroadSwitch(deviceId, server);
+        return newRailroadSwitch(deviceId);
     }
 
 }
