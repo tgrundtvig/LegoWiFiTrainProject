@@ -26,44 +26,44 @@ public class LocomotiveFactoryImpl extends AbstractRemoteDeviceFactory implement
     
     
     @Override
-    public synchronized String getDeviceTypeName()
+    public String getDeviceTypeName()
     {
-        return "Locomotive";
+        return "LegoLocomotive";
     }
 
     @Override
-    public synchronized int getDeviceType()
-    {
-        return 2;
-    }
-
-    @Override
-    public synchronized int getDeviceVersion()
+    public int getDeviceType()
     {
         return 2;
     }
 
     @Override
-    public synchronized int getMaxPackageSize()
+    public int getDeviceVersion()
     {
-        return 8;
+        return 1;
+    }
+
+    @Override
+    public int getMaxPackageSize()
+    {
+        return 4;
     }
 
 
     @Override
-    public synchronized void addListener(LocomotiveFactoryListener listener)
+    public void addListener(LocomotiveFactoryListener listener)
     {
         listeners.add(listener);
     }
 
     @Override
-    public synchronized boolean removeListener(LocomotiveFactoryListener listener)
+    public boolean removeListener(LocomotiveFactoryListener listener)
     {
         return listeners.remove(listener);
     }
     
     @Override
-    public synchronized LocomotiveV2Impl newLocomotive(long deviceId, RemoteDeviceServer server)
+    public LocomotiveV2Impl newLocomotive(long deviceId, RemoteDeviceServer server)
     {
         LocomotiveV2Impl res = new LocomotiveV2Impl(deviceId, this);
         for(LocomotiveFactoryListener listener : listeners)
@@ -75,7 +75,7 @@ public class LocomotiveFactoryImpl extends AbstractRemoteDeviceFactory implement
     }
 
     @Override
-    public synchronized RemoteDevice newRemoteDevice(long deviceId, RemoteDeviceServer server)
+    public RemoteDevice newRemoteDevice(long deviceId, RemoteDeviceServer server)
     {
         return newLocomotive(deviceId, server);
     }

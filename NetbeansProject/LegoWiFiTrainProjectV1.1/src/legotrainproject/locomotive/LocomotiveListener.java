@@ -9,5 +9,5 @@ package legotrainproject.locomotive;
  */
 public interface LocomotiveListener
 {
-    public void onPositionChange(int pos, int magnetTime);
+    public void onPositionChange(Locomotive loco, int pos, int magnetTime);
 }

@@ -28,7 +28,7 @@ public class RailroadSwitchFactoryImpl extends AbstractRemoteDeviceFactory imple
     @Override
     public synchronized String getDeviceTypeName()
     {
-        return "Railroad switch";
+        return "LegoRailroadSwitch";
     }
 
     @Override

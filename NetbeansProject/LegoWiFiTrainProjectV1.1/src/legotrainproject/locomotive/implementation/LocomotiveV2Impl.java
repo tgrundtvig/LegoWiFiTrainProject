@@ -106,7 +106,7 @@ public class LocomotiveV2Impl extends AbstractRemoteDevice implements Locomotive
         this.position = newPos;
         for(LocomotiveListener listener : listeners)
         {
-            listener.onPositionChange(newPos, magnetTime);
+            listener.onPositionChange(this, newPos, magnetTime);
         }
     }
 

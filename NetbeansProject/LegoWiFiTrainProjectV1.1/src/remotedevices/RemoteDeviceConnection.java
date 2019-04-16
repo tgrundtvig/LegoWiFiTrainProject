@@ -15,17 +15,15 @@ public interface RemoteDeviceConnection extends Closeable, Updateable
     public int getDeviceType();
     public int getDeviceVersion();
     public int getMaxPackageSize();
-    public boolean isConnected();
-    public boolean acceptConnectionWithDevice(RemoteDeviceCallbacks device);
-    public void rejectConnection(ErrorCode errorCode);
+    public boolean isAlive();
     public boolean sendPackage(int[] byteBuffer,int off, int len);
     public boolean sendPackage(int[] byteBuffer,int len);
+    public boolean sendPackage(int[] byteBuffer);
     public boolean sendSingleByte(int b);
     
     @Override
     public void close();    
+    
     @Override
     public void update(long curTime);
-    
-    public enum ErrorCode {ACCEPTED, NO_MATCHING_FACTORY, NOT_AUTHORIZED};
 }

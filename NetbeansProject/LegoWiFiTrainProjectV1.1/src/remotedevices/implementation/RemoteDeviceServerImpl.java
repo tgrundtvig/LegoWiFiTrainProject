@@ -3,12 +3,15 @@
  */
 package remotedevices.implementation;
 
+import common.AsyncSocketServer;
+import common.PackageConnection;
 import java.io.IOException;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -24,23 +27,19 @@ import remotedevices.RemoteDeviceServer;
 public class RemoteDeviceServerImpl implements RemoteDeviceServer
 {
 
-    private final ArrayList<RemoteDeviceConnection> connections;
-    private final ArrayList<RemoteDeviceConnection> deadConnections;
+    private final LinkedList<RemoteDeviceConnection> connections;
     private final Set<RemoteDeviceFactory> factories;
     private final Map<Long, RemoteDevice> devices;
-    private volatile boolean stopServer;
-    private Thread serverThread;
-    private SyncBox<Socket> socketBox = new SyncBox<>();
+    private final AsyncSocketServer socketServer;
+    private int connectionCount;
 
     public RemoteDeviceServerImpl()
     {
-        connections = new ArrayList<>();
-        deadConnections = new ArrayList<>();
+        connections = new LinkedList<>();
         factories = new HashSet<>();
         devices = new HashMap<>();
-        socketBox = new SyncBox<>();
-        stopServer = true;
-        serverThread = null;
+        socketServer = new AsyncSocketServer();
+        connectionCount = 0;
     }
 
     @Override
@@ -58,17 +57,13 @@ public class RemoteDeviceServerImpl implements RemoteDeviceServer
     @Override
     public synchronized void startServer(int port)
     {
-        stopServer = false;
-        serverThread = new Thread(new ServerThread(port));
-        serverThread.start();
+        socketServer.start(port);
     }
 
     @Override
     public synchronized void stopServer()
     {
-        stopServer = true;
-        socketBox.stop();
-        serverThread.interrupt();
+        socketServer.stop();
     }
 
     @Override
@@ -96,48 +91,49 @@ public class RemoteDeviceServerImpl implements RemoteDeviceServer
     @Override
     public List<RemoteDevice> getAllDevices()
     {
-        ArrayList<RemoteDevice> res = new ArrayList<>(devices.size());
-        for (RemoteDevice device : devices.values())
-        {
-            res.add(device);
-        }
-        return res;
+        return new ArrayList<>(devices.values());
     }
 
     @Override
     public void update(long curTime)
     {
+        if(connections.size() != connectionCount)
+        {
+            connectionCount = connections.size();
+            System.out.println("Number of connections: " + connectionCount);
+        }
         updateNewConnections();
         //Update connections.
-        for(RemoteDeviceConnection connection : connections)
+        Iterator<RemoteDeviceConnection> it = connections.iterator();
+        while(it.hasNext())
         {
-            if(connection.isConnected())
+            RemoteDeviceConnection connection = it.next();
+            if(connection.isAlive())
             {
                 connection.update(curTime);
             }
             else
             {
-                deadConnections.add(connection);
+                it.remove();
             }
         }
-        connections.removeAll(deadConnections);
-        deadConnections.clear();
+        
         //Update devices
-        for(RemoteDevice device : devices.values())
+        for (RemoteDevice device : devices.values())
         {
             device.update(curTime);
         }
     }
 
-    public void updateNewConnections()
+    private void updateNewConnections()
     {
-        Socket socket = socketBox.getIfAvailable();
+        Socket socket = socketServer.getSocketIfAvailable();
         if (socket != null)
         {
-            RemoteDeviceConnection connection;
             try
             {
-                connection = new RemoteDeviceConnectionImpl(socket);
+                RemoteDeviceConnection connection = new RemoteDeviceConnectionImpl(new PackageConnection(socket), this);
+                connections.add(connection);
             } catch (IOException ex)
             {
                 try
@@ -146,24 +142,11 @@ public class RemoteDeviceServerImpl implements RemoteDeviceServer
                 } catch (IOException ex1)
                 {
                 }
-                return;
-            }
-            RemoteDevice device = getDevice(connection);
-            if (device == null)
-            {
-                connection.rejectConnection(RemoteDeviceConnection.ErrorCode.NO_MATCHING_FACTORY);
-            } else
-            {
-                if(connection.acceptConnectionWithDevice(device))
-                {
-                    connections.add(connection);
-                    devices.put(device.getDeviceId(), device);
-                }
             }
         }
     }
 
-    private RemoteDevice getDevice(RemoteDeviceConnection connection)
+    protected RemoteDevice getDevice(RemoteDeviceConnection connection)
     {
         RemoteDevice device = devices.get(connection.getDeviceId());
         if (device == null)
@@ -172,61 +155,11 @@ public class RemoteDeviceServerImpl implements RemoteDeviceServer
             {
                 if (factory.matches(connection))
                 {
-                    device = factory.newRemoteDevice(connection.getDeviceId(), RemoteDeviceServerImpl.this);
+                    device = factory.newRemoteDevice(connection.getDeviceId(), this);
                     break;
                 }
             }
         }
         return device;
-    }
-
-    private class ServerThread implements Runnable
-    {
-
-        private final int port;
-
-        public ServerThread(int port)
-        {
-            this.port = port;
-        }
-
-        @Override
-        public void run()
-        {
-            while (!stopServer)
-            {
-                try
-                {
-                    try (ServerSocket serverSocket = new ServerSocket(port))
-                    {
-                        while (!stopServer)
-                        {
-                            Socket socket = null;
-                            try
-                            {
-                                socket = serverSocket.accept();
-                                socketBox.put(socket);
-                            } catch (IOException e)
-                            {
-                                if (socket != null)
-                                {
-                                    socket.close();
-                                }
-                            }
-                        }
-                    }
-                } catch (IOException ex)
-                {
-                    System.out.println(ex);
-                    System.out.println("Problem running server, will retry in 5 seconds...");
-                    try
-                    {
-                        Thread.sleep(5000);
-                    } catch (InterruptedException e)
-                    {
-                    }
-                }
-            }
-        }
     }
 }
