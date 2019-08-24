@@ -12,12 +12,12 @@ arduino_bottom = 0;
 //MotorCut();
 //Bottom();
 //BottomWithMagnet();
-BottomWithSensorLow();
+//BottomWithSensorLow();
 //StepperAxis();
 //Assambled();
 //translate([40,80,0])
 //NodeMCUV3Holder();
-//NodeMCUV2Holder();
+NodeMCUV2Holder();
 //ULN2003Holder();
 //translate([5,80,0])
 //rotate([0,0,60])
@@ -110,9 +110,9 @@ module TwoLeftSwitches()
 
 module BlueSwitchWiFiPrint()
 {
-    Bottom();
+    BottomWithSensorLow();
     translate([-46.5,27,0])
-    Switcher();
+    SwitcherLoose();
     if(!arduino_bottom)
     {
         if(node_type == 0)
@@ -256,6 +256,7 @@ module ULN2003Leg()
     cylinder(d=2.4,h=8,$fn=64);
 }
 
+/*
 module SwitcherLoose()
 {
 	union()
@@ -265,30 +266,72 @@ module SwitcherLoose()
 			hull()
 			{
 				cylinder(d=12, h=4, $fn=64);
-				translate([10,-8,0])
-				cube([12,16,4]);
+				translate([10,-7,0])
+				cube([12,14,4]);
 			}
 			translate([10,0,-0.1])
 			cylinder(d=6,h=4.2,$fn=64);
 			translate([10,-3,-0.1])
 			cube([14,6,4.2]);
 		}
-		translate([22,5.5,0])
-		cylinder(d=5,h=4,$fn=64);
-		translate([22,-5.5,0])
-		cylinder(d=5,h=4,$fn=64);
+		translate([22,5,0])
+		cylinder(d=4,h=4,$fn=64);
+		translate([22,-5,0])
+		cylinder(d=4,h=4,$fn=64);
+        
+        cylinder(d=10,h=switcher_height,$fn=64);
 		translate([0,0,14])
 		difference()
 		{
-			translate([0,0,-10])
-			cylinder(d=12,h=10,$fn=64);
-			rotate([0,0,20])
+			translate([0,0,switcher_height])
+			//rotate([0,0,20])
 			rotate([180,0,0])
 			StepperAxis();
-			rotate([0,0,-20])
-			rotate([180,0,0])
-			StepperAxis();
+			//rotate([0,0,-20])
+			//rotate([180,0,0])
+			//StepperAxis();
 		}
+	}
+}*/
+
+module SwitcherLoose()
+{
+    difference()
+    {
+        union()
+        {
+            difference()
+            {
+                hull()
+                {
+                    cylinder(d=12, h=4, $fn=64);
+                    translate([10,-7,0])
+                    cube([12,14,4]);
+                }
+                translate([10,0,-0.1])
+                cylinder(d=6,h=4.2,$fn=64);
+                translate([10,-3,-0.1])
+                cube([14,6,4.2]);
+            }
+            
+            translate([22,5,0])
+            cylinder(d=4,h=4,$fn=64);
+            translate([22,-5,0])
+            cylinder(d=4,h=4,$fn=64);
+            
+            cylinder(d=10,h=switcher_height,$fn=64);	
+        }
+        union()
+        {
+            translate([0,0,switcher_height])
+            rotate([0,0,20])
+            rotate([180,0,0])
+            StepperAxis();
+            translate([0,0,switcher_height])
+            rotate([0,0,-20])
+            rotate([180,0,0])
+            StepperAxis();
+        }
 	}
 }
 
@@ -512,28 +555,29 @@ module BottomWithSensorLow()
         Bottom();
         union()
         {
-            translate([-5.1*base_width-1,base_width-2.5, 1])
+            translate([-5.1*base_width-1,base_width-3.5, 1])
             cube([9.5*base_width-0.1, 7, 2*base_height]);
             translate([-5-4.5*base_width,7.5+base_width,1])
             rotate([0,0,180])
             intersection()
             {
-                cube([10,10,2*base_height]);
+                cube([20,20,2*base_height]);
                 translate([0,0,-1])
                 difference()
                 {
-                    cylinder(d=20,h=2*base_height+2,$fn=64);
+                    cylinder(d=22,h=2*base_height+2,$fn=64);
                     translate([0,0,-2])
-                    cylinder(d=10,h=2*base_height+4,$fn=64);
+                    cylinder(d=8,h=2*base_height+4,$fn=64);
                 }
             }
-            translate([-15-4.5*base_width,2*base_width-(base_width-7.5)-0.1,1])
-            cube([5,5,2*base_height]);
+            translate([-15-4.625*base_width,2*base_width-(base_width-7.5)-0.1,1])
+            cube([7,7,2*base_height]);
         }
     }
     
     
 }
+
 
 module StepperAxis()
 {
@@ -796,6 +840,61 @@ module hallSensorBrickBoogie()
         }
     }
 }
+
+//hallSensorBrickBoogieDouble();
+
+module hallSensorBrickBoogieDouble()
+{
+    
+    difference()
+    {
+        makeStandardLegoBrick(4,6,3,true);
+        union()
+        {
+            translate([0,-1.5*base_width,0])
+            hallSensorBrickBoogieDoubleCutOut();
+            translate([0,1.5*base_width,0])
+            rotate([0,0,180])
+            hallSensorBrickBoogieDoubleCutOut();
+            magnetHoleBottom();
+        }   
+    }
+}
+
+module hallSensorBrickBoogieDoubleCutOut()
+{
+    translate([0,0,base_height-0.2])
+    translate([0,0,1.5*base_height])
+    cube([5*base_width,base_width+0.4,3*base_height], center=true);
+    translate([3.5,-0.5*base_width-2,base_width-1.6])
+    rotate([90,0,-90])
+    difference()
+    {
+        translate([-base_width,-2*base_height,0])
+        cube([2*base_width, 3*base_width,7]);
+        translate([0.6*base_width,-0.6*base_width,-1])
+        union()
+        {
+            cylinder(d=base_width,h=9,$fn=64);
+            translate([0,-1.5*base_width,0])
+            cube([2*base_width,2*base_width,9]);
+            translate([-0.5*base_width,-2*base_width,0])
+            cube([2*base_width,2*base_width,9]);
+        }
+    }
+}
+
+module magnetHoleBottom()
+{
+    translate([0,0,0.5*magnet_z-0.5])
+    cube([magnet_x,magnet_y,magnet_z+1], center=true);
+    translate([0,0,magnet_z])
+    rotate([0,90,0])
+    cylinder(d=magnet_y, h=magnet_x, $fn=64, center=true);
+}
+
+
+
 
 module hallSensorBrickBoogieWithMagnet()
 {

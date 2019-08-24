@@ -40,7 +40,7 @@ LegoLocomotive::LegoLocomotive(const uint8_t motor_PWM_pin,
     _curSpeed = 0;
 
     _minSpeed = 512;
-    _maxSpeed = 800;
+    _maxSpeed = 1023;
 
     _lastSpeedChange = 0;
     _lastSpeedUpdate = 0;
