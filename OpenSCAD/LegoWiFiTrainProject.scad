@@ -17,7 +17,7 @@ arduino_bottom = 0;
 //Assambled();
 //translate([40,80,0])
 //NodeMCUV3Holder();
-NodeMCUV2Holder();
+//NodeMCUV2Holder();
 //ULN2003Holder();
 //translate([5,80,0])
 //rotate([0,0,60])
@@ -37,6 +37,7 @@ NodeMCUV2Holder();
 //makeStandardLegoBrick(4,2,3);
 //magnetTest();
 //hallSensorBrickBoogie();
+//hallSensorBrickBoogieDouble();
 //hallSensorBrickBoogieWithMagnet();
 //hallSensorBrickLow();
 
@@ -841,7 +842,7 @@ module hallSensorBrickBoogie()
     }
 }
 
-//hallSensorBrickBoogieDouble();
+
 
 module hallSensorBrickBoogieDouble()
 {
